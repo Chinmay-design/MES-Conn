@@ -209,4 +209,42 @@ def student_friends_page(user_id):
                         
                         if st.button("Add Friend", key=f"add_pot_{user['id']}", type="primary"):
                             success, msg = add_friend_request(user_id, user['id'])
-                           
+                            if success:
+                                st.success(msg)
+                                st.rerun()
+                            else:
+                                st.error(msg)
+                        
+                        if st.button("View Profile", key=f"view_pot_{user['id']}"):
+                            with st.expander("User Profile", expanded=True):
+                                user_details = get_user_by_id(user['id'])
+                                if user_details:
+                                    st.write(f"**Email:** {user_details['email']}")
+                                    st.write(f"**Phone:** {user_details.get('phone', 'Not provided')}")
+                                    st.write(f"**Skills:** {user_details.get('skills', 'Not specified')}")
+                                    st.write(f"**About:** {user_details.get('about', 'Not specified')}")
+                                    if st.button("Add Friend from Profile", key=f"add_from_profile_{user['id']}"):
+                                        success, msg = add_friend_request(user_id, user['id'])
+                                        if success:
+                                            st.success(msg)
+                                            st.rerun()
+                                        else:
+                                            st.error(msg)
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        st.markdown("---")
+            
+            # Show more button if there are more users
+            if len(potential_friends) > 9:
+                if st.button("Load More", type="secondary"):
+                    st.info("Pagination feature coming soon!")
+        else:
+            st.info("No potential friends found with the current filters.")
+    
+    with tab4:
+        # Blocked Users
+        st.subheader("Blocked Users")
+        st.info("Blocked users feature coming soon!")
+        
+        # This would require adding a 'blocked' status to friends table
+        # and implementing block/unblock functionality
