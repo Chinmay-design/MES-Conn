@@ -220,3 +220,133 @@ def alumni_networking_page(user_id):
                 })
             
             if dept_data:
+                df = pd.DataFrame(dept_data)
+                fig = px.bar(df, x='Department', y='Alumni Count', 
+                           title="Alumni Distribution by Department")
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Industry-specific groups
+        st.markdown("### 👥 Industry Groups")
+        
+        industries = [
+            ("💻 Technology", "Google, Microsoft, Amazon, etc."),
+            ("🏦 Finance", "Banks, Investment firms, Fintech"),
+            ("🏥 Healthcare", "Hospitals, Pharma, Medtech"),
+            ("🏭 Manufacturing", "Automotive, Industrial, Consumer goods"),
+            ("🎓 Education", "Universities, Schools, Edtech"),
+            ("⚡ Energy", "Oil & Gas, Renewable energy"),
+            ("🚚 Logistics", "Transportation, Supply chain"),
+            ("🎨 Creative", "Design, Media, Entertainment")
+        ]
+        
+        cols = st.columns(4)
+        for idx, (industry, description) in enumerate(industries):
+            with cols[idx % 4]:
+                with st.container():
+                    st.markdown(f"**{industry}**")
+                    st.caption(description)
+                    
+                    member_count = 0  # Would need to calculate from database
+                    st.metric("Members", member_count)
+                    
+                    if st.button(f"Join {industry.split()[0]}", key=f"join_ind_{idx}"):
+                        st.info(f"Joining {industry} group...")
+
+def display_alumni_card(alum, user_id):
+    """Display an alumni card for networking"""
+    with st.container():
+        st.markdown(f"<div style='text-align: center; padding: 15px; border: 1px solid #e0e0e0; border-radius: 10px; margin: 10px 0;'>", unsafe_allow_html=True)
+        
+        if alum.get('profile_pic'):
+            st.image(alum['profile_pic'], width=80)
+        else:
+            st.image("https://via.placeholder.com/80", width=80)
+        
+        st.markdown(f"**{alum['first_name']} {alum['last_name']}**")
+        
+        if alum.get('current_position'):
+            st.caption(f"💼 {alum['current_position']}")
+        
+        if alum.get('company'):
+            st.caption(f"🏢 {alum['company']}")
+        
+        if alum.get('department'):
+            st.caption(f"🎓 {alum['department']} ({alum.get('year', '')})")
+        
+        if alum.get('skills'):
+            skills_preview = ', '.join(alum['skills'].split(',')[:2])
+            st.caption(f"🛠️ {skills_preview}")
+        
+        # Connection button
+        if st.button("Connect", key=f"connect_alum_{alum['id']}", type="primary"):
+            success, msg = add_friend_request(user_id, alum['id'])
+            if success:
+                st.success(msg)
+                st.rerun()
+            else:
+                st.error(msg)
+        
+        # View profile button
+        if st.button("View Profile", key=f"view_alum_{alum['id']}"):
+            with st.expander("Alumni Profile", expanded=True):
+                alum_details = get_user_by_id(alum['id'])
+                if alum_details:
+                    st.write(f"**Email:** {alum_details['email']}")
+                    st.write(f"**Current Position:** {alum_details.get('current_position', 'Not specified')}")
+                    st.write(f"**Company:** {alum_details.get('company', 'Not specified')}")
+                    st.write(f"**Graduation Year:** {alum_details.get('year', 'Not specified')}")
+                    st.write(f"**Department:** {alum_details.get('department', 'Not specified')}")
+                    if alum_details.get('linkedin'):
+                        st.write(f"**LinkedIn:** {alum_details['linkedin']}")
+                    if alum_details.get('skills'):
+                        st.write(f"**Skills:** {alum_details['skills']}")
+                    if alum_details.get('about'):
+                        st.write(f"**About:** {alum_details['about']}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+
+def display_student_card(student, user_id):
+    """Display a student card for networking"""
+    with st.container():
+        st.markdown(f"<div style='text-align: center; padding: 15px; border: 1px solid #e0e0e0; border-radius: 10px; margin: 10px 0;'>", unsafe_allow_html=True)
+        
+        if student.get('profile_pic'):
+            st.image(student['profile_pic'], width=80)
+        else:
+            st.image("https://via.placeholder.com/80", width=80)
+        
+        st.markdown(f"**{student['first_name']} {student['last_name']}**")
+        
+        if student.get('department'):
+            st.caption(f"🎓 {student['department']}")
+        
+        if student.get('year'):
+            st.caption(f"📚 {student['year']}")
+        
+        if student.get('skills'):
+            skills_preview = ', '.join(student['skills'].split(',')[:2])
+            st.caption(f"🛠️ {skills_preview}")
+        
+        # Connection button
+        if st.button("Connect", key=f"connect_stu_{student['id']}", type="primary"):
+            success, msg = add_friend_request(user_id, student['id'])
+            if success:
+                st.success(msg)
+                st.rerun()
+            else:
+                st.error(msg)
+        
+        # Offer mentorship button
+        if st.button("Offer Mentorship", key=f"mentor_{student['id']}"):
+            with st.form(f"mentor_offer_{student['id']}"):
+                st.write(f"Offer mentorship to {student['first_name']}")
+                message = st.text_area(
+                    "Message",
+                    value=f"Hi {student['first_name']}, I noticed your profile and would like to offer mentorship. I have experience in your field and would be happy to help guide your career journey.",
+                    height=100
+                )
+                
+                if st.form_submit_button("Send Mentorship Offer", type="primary"):
+                    st.success("Mentorship offer sent!")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
